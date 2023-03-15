@@ -1,0 +1,51 @@
+# bases
+param : V : is_critical_point :=
+  base0 0
+  base1 0
+  base2 0
+  base3 0
+  base4 1
+  base5 0
+  base6 1
+  base7 1
+  base8 0
+  base9 0
+  base10 0
+  base11 1
+  base12 1
+  base13 0
+  base14 0
+  base15 0
+  base16 0
+  base17 0
+  base18 0
+  base19 0
+;
+
+# connections
+set E :=
+  base0 base7
+  base0 base8
+  base0 base9
+  base0 base17
+  base1 base17
+  base2 base3
+  base4 base7
+  base4 base11
+  base5 base14
+  base5 base15
+  base6 base9
+  base6 base14
+  base7 base18
+  base8 base16
+  base8 base18
+  base8 base19
+  base9 base14
+  base10 base14
+  base11 base18
+  base12 base15
+  base12 base16
+  base12 base19
+  base13 base17
+  base14 base16
+;

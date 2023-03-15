@@ -1,0 +1,36 @@
+# base defense (.run file)
+
+model base_defense.mod;
+
+data base_defense.dat;
+
+option solver cplex;
+option cplex_options "mipdisplay=2";
+solve;
+
+# print out information
+# for {v in V} {
+#     printf "%s %s\n", v, if to_arm[v] = 1 then "to arm" else "to leave unarmed";
+# }
+
+# print a GraphViz file for easier scanning of the solution
+printf "# file written by base_defense.run\n" > result_base_defense.dot;
+printf "graph base_defense {\n" >> result_base_defense.dot;
+for {v in V} {
+  printf "  %s", v >> result_base_defense.dot;
+  if to_arm[v] == 1 then {
+    printf "[shape=D" >> result_base_defense.dot;
+  } else if to_arm[v] == 0 then {
+    printf "[shape=o" >> result_base_defense.dot;
+  }
+  if is_critical_point[v] == 0 then {
+    printf "];" >> result_base_defense.dot;
+  } else {
+    printf ', style=filled, fillcolor=red, xlabel=%s];', v >> result_base_defense.dot;
+  }
+}
+for {(u,v) in E} {
+  printf "  %s -- %s;", u, v >> result_base_defense.dot;
+}
+printf "}" >> result_base_defense.dot;
+
