@@ -10,13 +10,9 @@ However, it does not guarantee an optimal solution and its performance may vary 
 
 
 import heapq
-import os
-from matplotlib import pyplot as plt
 import networkx as nx
-import numpy as np
 from utils import *
 from utils.helpers import timer
-from base_defense import run_ampl, graph_to_dat, run_ampl_timed
 
 
 @timer
@@ -73,29 +69,6 @@ def greedy_dominating_set_v0(graph: nx.Graph, critical_points):
 # 1. reduced average-case time complexity
 @timer
 def greedy_dominating_set_v1(graph: nx.Graph, critical_points):
-    """
-    Find a greedy approximate of the minimum dominating set for the given graph with its critical points
-    
-    Parameters
-    ----------
-    graph 
-        An undirected graph represented as a networkx Graph object.
-    critical_points
-        A list of critical points that must be covered by the dominating set.
-    
-    Return
-    ------
-    A list of vertices representing an approximate minimum dominating set for the given graph and critical points.
-    
-    Analysis
-    --------
-    Worst-case time complexity: O(n^2) (where n := card(V))\\
-    In each iteration of the while loop check all vertices in the graph to find the one that covers the maximum number of uncovered critical points
-    
-    Worst-case space complexity: O(n)\\
-    Store uncovered critical points and dominating set
-    """
-
     # Initialize the dominating set and uncovered critical points
     dominating_set = []
     uncovered = set(critical_points)
@@ -224,54 +197,16 @@ def greedy_dominating_set_v3_0(graph, critical_points):
 # Problem: maintain heap structure O(n log n) (overall : O(n^2 log n))
 
 if __name__ == "__main__":
+    bases_graph, pos, critical_points = core.generate_graph_of_bases(
+        **constants.GENERATE_GRAPH_OF_BASES_DEFAULT_KWARGS
+    )
 
-    for number_bases in (num_bases_list := np.linspace(20, 50, 10)):
-        constants.GENERATE_GRAPH_OF_BASES_DEFAULT_KWARGS["number_bases"] = int(
-            number_bases
-        )
-        bases_graph, pos, critical_points = core.generate_graph_of_bases(
-            **constants.GENERATE_GRAPH_OF_BASES_DEFAULT_KWARGS
-        )
+    bases_to_arm = greedy_dominating_set_v2(bases_graph, critical_points)
+    core.set_attributes(bases_graph, bases_to_arm, critical_points)
 
-        graph_to_dat(
-            bases_graph, os.path.join(constants.DIR_AMPL, constants.FILENAME)
-        )
-
-        run_ampl(dirname=constants.DIR_AMPL, filename=constants.FILENAME)
-
-        for func in [
-            greedy_dominating_set_v0,
-            greedy_dominating_set_v1,
-            greedy_dominating_set_v2,
-            greedy_dominating_set_v3_0,
-        ]:
-            _ = func(bases_graph, critical_points)
-
-    plt.figure(figsize=(12, 8))
-    for i, func in enumerate(
-        [
-            greedy_dominating_set_v0,
-            greedy_dominating_set_v1,
-            greedy_dominating_set_v2,
-            greedy_dominating_set_v3_0,
-            run_ampl_timed,
-        ]
-    ):
-        plt.plot(
-            num_bases_list,
-            func.__closure__[1].cell_contents,
-            marker="o",
-            label=func.__name__,
-            mfc="k"
-        )
-    plt.legend()
-    plt.show()
-
-    # core.set_attributes(bases_graph, bases_to_arm, critical_points)
-
-    # core.graph_to_pdf(
-    #     bases_graph,
-    #     pos,
-    #     "greedy_" + constants.FILENAME,
-    #     shapemap=constants.SHAPEMAP,
-    # )
+    core.graph_to_pdf(
+        bases_graph,
+        pos,
+        "greedy_" + constants.FILENAME,
+        shapemap=constants.SHAPEMAP,
+    )

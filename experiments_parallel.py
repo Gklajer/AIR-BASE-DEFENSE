@@ -1,10 +1,15 @@
+import os
+from base_defense import graph_to_dat, run_ampl
 from experiments_greedy import greedy_dominating_set_v2 as find_dominating_set
 import metis
 import networkx as nx
 from concurrent.futures import ThreadPoolExecutor
 
+from utils import *
 
-def find_dominating_set_parallel(graphs: list[nx.Graph], critical_points):
+
+def find_dominating_set_parallel(graph: nx.Graph, critical_points: list[str], find_dominating_set: "function", k: int):
+    graphs = partition_graph(graph, k)
     # Create a thread pool
     with ThreadPoolExecutor() as executor:
         # Submit tasks to find dominating set for each subgraph
@@ -19,7 +24,7 @@ def find_dominating_set_parallel(graphs: list[nx.Graph], critical_points):
     # Combine results from all subgraphs
     dominating_set = set().union(*results)
 
-    return list(dominating_set)
+    return reduce_dominating_set(list(dominating_set))
 
 
 def partition_graph(graph: nx.Graph, k: int):
@@ -48,9 +53,9 @@ def partition_graph(graph: nx.Graph, k: int):
     return subgraphs
 
 
-def reduce_dominating_set(graph: nx.Graph, dominating_set):
+def reduce_dominating_set(graph: nx.Graph, dominating_set: list["str"]):
     # Create a copy of the dominating set
-    reduced_dominating_set = list(dominating_set)
+    reduced_dominating_set = dominating_set.copy()
 
     # Iterate over vertices in the dominating set
     for vertex in dominating_set:
@@ -62,3 +67,19 @@ def reduce_dominating_set(graph: nx.Graph, dominating_set):
             reduced_dominating_set.remove(vertex)
 
     return reduced_dominating_set
+
+if __name__ == "__main__":
+    bases_graph, pos, critical_points = core.generate_graph_of_bases(
+            **constants.GENERATE_GRAPH_OF_BASES_DEFAULT_KWARGS
+        )
+
+    bases_to_arm = find_dominating_set_parallel(bases_graph, critical_points, find_dominating_set, k=3)
+    
+    core.set_attributes(bases_graph, bases_to_arm, critical_points)
+
+    core.graph_to_pdf(
+        bases_graph,
+        pos,
+        "parallel" + constants.FILENAME,
+        shapemap=constants.SHAPEMAP,
+    )
